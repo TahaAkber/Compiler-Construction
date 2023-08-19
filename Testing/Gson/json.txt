@@ -1,0 +1,3 @@
+[{"classPart":"ID","valuePart":"Taha","line":5},
+{"classPart":"DT","valuePart":"String","line":2},
+{"classPart":"for","line":7}]
