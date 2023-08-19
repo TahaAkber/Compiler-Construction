@@ -1,0 +1,5 @@
+[{"line":1,"classP":"id","valueP":"float"},
+{"line":1,"classP":"id","valueP":"a"},
+{"line":1,"classP":"\u003d","valueP":"\u003d"},
+{"line":1,"classP":"floatConst","valueP":"3.5"},
+{"line":1,"classP":";","valueP":";"}

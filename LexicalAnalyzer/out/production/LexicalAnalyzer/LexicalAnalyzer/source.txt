@@ -1,2 +1,9 @@
-integer a = 5.24a;
-if(a<3){}else{};
+Class taha{
+
+integer a;
+integer b;
+
+
+implicit taha(integer a){
+ this.a = a;
+}

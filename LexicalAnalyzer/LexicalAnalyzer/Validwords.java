@@ -29,13 +29,12 @@ public class Validwords {
 
             {"def", "def"},
 
-            {"void","implicit"},
+            {"void", "implicit"},
             {"if", "if"},
             {"else", "else"},
             {"loop", "loop"},
             {"till", "till"},
-            {"thru", "thru"},
-            {"do", "do"},
+            {"excluded","excluded"},
 
             {"in", "in"},
             {"shift", "shift"}, // shift
@@ -46,7 +45,6 @@ public class Validwords {
             {"ret", "ret"},     // return
 
             {"integer",  "dt"},
-            {"int","dt"},
             {"fraction",  "dt"}, // float
             {"char",  "dt"},
             {"str", "str"},
@@ -67,12 +65,6 @@ public class Validwords {
             {"Parent", "Parent"},
             {"new", "new"},
 
-
-            {"test", "test"},   // catch
-            {"except", "except"},
-            {"finally", "finally"},
-            {"raise", "raise"},
-            {"raises", "raises"}
 
 
 

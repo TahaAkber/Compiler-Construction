@@ -108,10 +108,6 @@ public class Tokenizer {
         }
 
 
-
-        // Before saving add END marker in the last of token list
-//        TokenClass.addToken(new TokenClass("~","~",line));
-
         // Save Token List In txt
         TokenClass.saveToken();
 
