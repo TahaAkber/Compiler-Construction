@@ -34,7 +34,7 @@ public class Validwords {
             {"else", "else"},
             {"loop", "loop"},
             {"till", "till"},
-            {"excluded","excluded"},
+            {"excluded","excluded"},//for
 
             {"in", "in"},
             {"shift", "shift"}, // shift
@@ -46,25 +46,25 @@ public class Validwords {
 
             {"integer",  "dt"},
             {"fraction",  "dt"}, // float
-            {"char",  "dt"},
-            {"str", "str"},
-            {"binary",  "dt"},
-            {"val",  "dt"},
+            {"char",  "dt"}, //chat
+            {"str", "str"},//string
+            {"binary",  "dt"}, //bool
+            {"val",  "dt"}, //value
 
             {"true",BOOLEANCONST},
             {"false",BOOLEANCONST},
             {"NaN","NaN"},
 
             {"Class", "Class"},
+            {"junction","junction"},
             {"Abstract", "Abstract"},
             {"Static", "Static"},
-            {"@", "private"},
-            {"@@", "protected"},
+            {"@@", "private"},
+            {"@", "protected"},
             {"const", "const"},
             {"Self", "Self"},
-            {"Parent", "Parent"},
             {"new", "new"},
-
+            {"extends","class"}
 
 
 
@@ -102,7 +102,7 @@ public class Validwords {
 
             {"^", "power"},
 
-            {"=", "="}
+            {"=", "Assignment"}
 
     };
 

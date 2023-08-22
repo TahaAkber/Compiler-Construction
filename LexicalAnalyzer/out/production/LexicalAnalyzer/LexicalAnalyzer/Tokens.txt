@@ -1,5 +1,10 @@
-[{"line":1,"classP":"id","valueP":"float"},
+[{"line":1,"classP":"id","valueP":"int"},
 {"line":1,"classP":"id","valueP":"a"},
-{"line":1,"classP":"\u003d","valueP":"\u003d"},
-{"line":1,"classP":"floatConst","valueP":"3.5"},
-{"line":1,"classP":";","valueP":";"}
+{"line":1,"classP":"=","valueP":"="},
+{"line":1,"classP":"intConst","valueP":"5"},
+{"line":1,"classP":";","valueP":";"},
+{"line":3,"classP":"id","valueP":"int"},
+{"line":3,"classP":"id","valueP":"a"},
+{"line":3,"classP":"rop","valueP":">"},
+{"line":3,"classP":"intConst","valueP":"5"},
+{"line":3,"classP":";","valueP":";"}

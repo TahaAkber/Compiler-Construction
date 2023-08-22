@@ -53,7 +53,8 @@ public class TokenClass {
     public static void saveToken() {
         // Save Token in Json File
         GsonBuilder builder = new GsonBuilder();
-        Gson gson = builder.create();
+        Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+//        Gson gson = builder.create();
 
         try {
             File myobj = new File("C:\\Users\\taha_\\OneDrive\\Documents\\GitHub\\Compiler-Construction\\LexicalAnalyzer\\LexicalAnalyzer\\Tokens.txt");
