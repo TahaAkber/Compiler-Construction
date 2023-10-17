@@ -51,12 +51,12 @@ public class TokenClass {
 //        Gson gson = builder.create();
 
         try {
-            File myobj = new File("C:\\Users\\taha_\\OneDrive\\Documents\\GitHub\\Compiler-Construction\\LexicalAnalyzer\\LexicalAnalyzer\\Tokens.txt");
+            File myobj = new File("C:\\Users\\Koln1ce\\Documents\\GitHub\\Compiler-Construction\\LexicalAnalyzer\\LexicalAnalyzer\\Tokens.txt");
             if (myobj.createNewFile()) System.out.println("File Created" + myobj.getName());
             else {
                 System.out.println("File already existed");
             }
-            FileWriter Writer = new FileWriter("C:\\Users\\taha_\\OneDrive\\Documents\\GitHub\\Compiler-Construction\\LexicalAnalyzer\\LexicalAnalyzer\\Tokens.txt");
+            FileWriter Writer = new FileWriter("C:\\Users\\Koln1ce\\Documents\\GitHub\\Compiler-Construction\\LexicalAnalyzer\\LexicalAnalyzer\\Tokens.txt");
             String jsonString = "[";
             if (!TokenClass.tokenlist.isEmpty()) {
                 jsonString += gson.toJson(TokenClass.tokenlist.get(0));
@@ -80,7 +80,7 @@ public class TokenClass {
     }
     public static void loadToken(){
         try {
-            Reader reader = Files.newBufferedReader(Paths.get("C:\\Users\\taha_\\OneDrive\\Documents\\GitHub\\Compiler-Construction\\LexicalAnalyzer\\LexicalAnalyzer\\Tokens.txt"));
+            Reader reader = Files.newBufferedReader(Paths.get("C:\\Users\\Koln1ce\\Documents\\GitHub\\Compiler-Construction\\LexicalAnalyzer\\LexicalAnalyzer\\Tokens.txt"));
             // convert JSON array to list of users
             TokenClass.tokenlist = new Gson().fromJson(reader, new TypeToken<List<TokenClass>>() {}.getType());
             System.out.println("Successfully load Token from the file.");

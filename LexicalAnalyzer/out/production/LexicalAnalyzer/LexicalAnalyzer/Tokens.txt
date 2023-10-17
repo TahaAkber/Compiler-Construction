@@ -1,3 +1,3 @@
-[{"line":1,"classP":"id","valueP":"START"},
-{"line":1,"classP":"(","valueP":"("},
-{"line":1,"classP":")","valueP":")"}]
+[{"line":1,"classP":"dt","valueP":"integer"},
+{"line":1,"classP":"id","valueP":"a"},
+{"line":1,"classP":";","valueP":";"}]

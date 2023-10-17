@@ -38,7 +38,7 @@ public class Tokenizer {
         // Initialize File Reader
         try {
             //Creation of File Reader object
-            fr = new FileReader("C:\\Users\\taha_\\OneDrive\\Documents\\GitHub\\Compiler-Construction\\LexicalAnalyzer\\LexicalAnalyzer\\source.txt");
+            fr = new FileReader("C:\\Users\\Koln1ce\\Documents\\GitHub\\Compiler-Construction\\LexicalAnalyzer\\LexicalAnalyzer\\source.txt");
             //Creation of BufferedReader object ("Raw file Reader")
             br = new BufferedReader(fr);
         } catch (FileNotFoundException ex) {
