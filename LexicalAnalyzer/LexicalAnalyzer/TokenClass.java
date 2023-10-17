@@ -2,10 +2,16 @@
 package LexicalAnalyzer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
-import java.io.*;
+import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 
 public class TokenClass {
 
@@ -19,24 +25,12 @@ public class TokenClass {
         this.classP = classP;
         this.valueP = valueP;
         this.line = line;
-    }
-
-
-
-
-    // set error / show error
-    public void setError(String Error) {
-        this.error = Error;
-        System.out.println(Error + " IM IN TOKEN CLASS----------");
-    }
-
-    public String toString() {
-        String returnString = this.classP + "-" + this.valueP + "-" + this.line;
-        if (this.error != null) {
-            returnString += "-" + this.error;
+        if ( !(classP.equals(valueP)) ) {
+            this.valueP = valueP;
         }
-        return returnString;
     }
+
+
 
     //Create token
     static void createTokenList() {
@@ -72,17 +66,41 @@ public class TokenClass {
                 jsonString += gson.toJson(TokenClass.tokenlist.get(i));
 
             }
-            Writer.write(jsonString);
+            Writer.write(jsonString+"]");
             Writer.close();
             System.out.println("Successfully save Token to the file.");
+            //jsonString += "]";
 
-            jsonString += "]";
+
         } catch (IOException e) {
             System.out.println("An error occurred.");
         }
 
 
     }
+    public static void loadToken(){
+        try {
+            Reader reader = Files.newBufferedReader(Paths.get("C:\\Users\\taha_\\OneDrive\\Documents\\GitHub\\Compiler-Construction\\LexicalAnalyzer\\LexicalAnalyzer\\Tokens.txt"));
+            // convert JSON array to list of users
+            TokenClass.tokenlist = new Gson().fromJson(reader, new TypeToken<List<TokenClass>>() {}.getType());
+            System.out.println("Successfully load Token from the file.");
+        } catch (IOException e) {
+            TokenClass.tokenlist = new ArrayList<>();
+        }
+    }
+    public void setError(String Error) {
+        this.error = Error;
+        System.out.println(Error + " IM IN TOKEN CLASS----------");
+    }
+
+    public String toString() {
+        String returnString = this.classP + "-" + this.valueP + "-" + this.line;
+        if (this.error != null) {
+            returnString += "-" + this.error;
+        }
+        return returnString;
+    }
+
 };
 
 //public static void main(String [] args){
