@@ -1,0 +1,1680 @@
+package SyntaxAnalyzer;
+
+import LexicalAnalyzer.TokenClass;
+import java.util.HashMap;
+import java.util.List;
+
+/**
+ *
+ * @author  Abdullah, Taha, Muneeb
+ */
+public class LL1Parser {
+    //CTRL + SHIFT + - TO MINIMIZE FUNCTIONS AND COMMENTS
+    private int index = 0;
+    List <TokenClass> tokenList;
+    //Selection Set
+    private HashMap<String, String[][]> sSet;
+
+    /**
+     * Constructor Initializes Selection Set HashMap
+     */
+    public LL1Parser() {
+        initializeSelectionSet();
+    }
+
+    
+    /**
+     * Validate function takes TokenList and parse through CFG
+     * @param wordList TokenList
+     * @return true if syntax/ TokenList match with Grammar
+     */
+    public boolean validate(List<TokenClass> wordList) {
+        this.tokenList = wordList;
+        boolean result = false;
+        
+        if (searchSelectionSet("START")){
+            if ( START() ) 
+                result = ( this.index == this.tokenList.size()-1);
+        }
+
+        if ( !result ) {
+            TokenClass token = this.tokenList.get(this.index);
+            if (token.error == null) {
+                String errorTk = this.tokenList.get(this.index).valueP;
+                if ( errorTk == null )
+                    errorTk = this.tokenList.get(this.index).classP;
+            
+                System.err.println("Syntax Error, token:"+ errorTk + " on line number: "+ token.line);
+            } else {
+                System.err.println(token.error +": "+token.valueP+" on line no# "+ token.line);
+                System.err.println(token.error +": "+token.classP+"\t"+token.valueP+" on line no# "+ token.line);
+            }
+        }
+        
+        emptyAndReset();
+        return  result;
+    }
+    
+    /**
+     * Reset index and terminal list so that new terminal can be parse
+     * @return  void
+     */
+    private void emptyAndReset() {
+        index = 0;
+        tokenList = null;
+    }
+    
+    /**
+     * Get Token from TokenList at position of global index current value
+     * @return 
+     */
+    private String getTokenCP() {
+        return this.tokenList.get(index).classP;
+    }
+    
+    /**
+     * Search First Set words from Selection Set
+     * @param word
+     * @param selectionSet
+     * @return 
+     */
+    private boolean searchSelectionSet(String selectionSet) {
+        String word = getTokenCP();
+        try {
+            for (String cp : sSet.get(selectionSet)[0]) {
+                if ( word.equals(cp)) {
+                    return true;
+                }
+            }
+            for (String cp : sSet.get(selectionSet)[1]) {
+                if ( word.equals(cp)) {
+                    return true;
+                }
+            }
+        } catch (NullPointerException e) {
+            System.out.println(word);
+            System.out.println(selectionSet);
+            String[] error = sSet.get(selectionSet)[0];
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Search Follow Set words from Selection Set when Non Terminal has null
+     * @param selectionSet
+     * @return 
+     */
+    private boolean searchFollowSet(String selectionSet) {
+        String word = getTokenCP();
+        try {
+            for (String cp : sSet.get(selectionSet)[1]) {
+                if ( word.equals(cp)) {
+                    return true;
+                }
+            }
+        } catch (NullPointerException e) {
+            System.out.println(word);
+            System.out.println(selectionSet);
+            String[] error = sSet.get(selectionSet)[1];
+        }
+        return false;
+    }
+    
+    /**
+     * If token match with the grammar word then index is incremented and
+     * function return true.
+     * @param nonTerminal
+     * @return Boolean value, true if match
+     */
+    private boolean match(String nonTerminal) {
+        if (getTokenCP().equals(nonTerminal)) {
+            index++;
+            return true;
+        }
+        return false;
+    }
+    /**
+     * If token value part match with the grammar word then index is incremented and
+     * function return true.
+     * @param nonTerminal
+     * @return Boolean value, true if match
+     */
+    private boolean matchVp(String nonTerminal) {
+        String token = this.tokenList.get(index).valueP;
+        if (token != null) {
+            if (token.equals(nonTerminal)) {
+                index++;
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    //selectionSet
+    private void initializeSelectionSet(){
+        
+        sSet = new HashMap<>();
+        
+        //$Start Structure
+        sSet.put("EXPR", new String[][] {{"ID"},{"~"}});
+        sSet.put("ST1", new String[][] {{"import", "begin", "def", "Class", "Abstract", "const", "id", "dt","str"},{"~"}});
+        sSet.put("ST_BODY", new String[][] {{"begin", "def", "Class", "Abstract", "const", "id", "dt","str"},{"~"}});
+        sSet.put("ST_BODY2", new String[][] {{"def", "Class", "Abstract", "const", "id", "dt","str"},{"~"}});
+        
+        //$Body
+        sSet.put("BODY", new String[][] {{";", "if", "shift", "const", "dt", "str", "id", "Parent", "Self", "test", "loop", "do", "stop", "ret", "cont", "raise", "{"},{}});
+        
+        //$Single and Multi Statements
+        sSet.put("SST", new String[][] {{";", "if", "shift", "const", "dt", "str", "id", "Parent", "Self", "test", "loop", "do", "stop", "ret", "cont", "raise"},{}});
+        sSet.put("MST", new String[][] {{";", "if", "shift", "const", "dt", "str", "id", "Parent", "Self", "test", "loop", "do", "stop", "ret", "cont", "raise"},{"state", "default", "}"},{}});
+
+        //$Begin the Main Function
+        sSet.put("MAIN", new String[][] {{"begin"},{}});
+        
+        //$Package and Import
+        sSet.put("PACKAGE", new String[][] {{"package"},{}});
+        sSet.put("IMPORTS", new String[][] {{"import"},{}});
+        sSet.put("IMP_DOT", new String[][] {{"dot", ";"},{}});
+        sSet.put("ID_STAR", new String[][] {{"id", "power", ";"},{}});
+        
+        //$Reusable CFG
+        sSet.put("TYPE", new String[][] {{"id", "dt", "str"}, {} });
+        sSet.put("DT_STR", new String[][] {{"dt", "str"}, {} });
+        sSet.put("ARR_TYPE", new String[][] {{"["}, {} });
+        sSet.put("ARR_TYPE_LIST", new String[][] { {"["},{"id", "protected", "private"} });
+        sSet.put("ACCESS_METH", new String[][] {{"Parent", "Self"}, {}});
+        sSet.put("ACM", new String[][] {{"Parent", "Self"}, {}});
+        
+        //$Access Modifier
+        sSet.put("ACCESSMOD", new String[][] { {"protected", "private"}, {"id"} });
+        
+        //$Function Statement
+        sSet.put("FN_DEC", new String[][] { {"def"}, {}  });
+        sSet.put("FN_ST", new String[][] { {"("} });
+        sSet.put("PAR", new String[][] { {"id", "dt", "str", ")"}, {}  });
+        sSet.put("PAR_LIST", new String[][] { {",", ")"}, {}  });
+        sSet.put("DT_ID", new String[][] { {"id", "dt", "str"}, {}  });
+        
+        sSet.put("RET_TYPE", new String[][] { {"dt", "str", "id"}, {}  });
+        sSet.put("RT_OBJ", new String[][] { {"[", "Id"}, {"("} });
+        
+        sSet.put("FN_CLASS_DEC", new String[][] { {"def"}, {}  });
+        sSet.put("IS_ABSTRACT", new String[][] { {"Abstract", "const", "Static"}, {}  });
+        sSet.put("RET_TO_THROW", new String[][] { {"dt", "str", "id", "private", "protected"}, {}  });
+        sSet.put("WITH_STATIC", new String[][] { {"Static", "dt", "str", "id", "private", "protected"}, {}  });
+        
+        sSet.put("RET_TYPE_C", new String[][] { {"dt", "str", "id", "private", "protected"}, {}  });
+        sSet.put("RET_OBJ_C", new String[][] { {"[", "private", "protected", "Id"}, {"("} });
+        sSet.put("ACCESSMOD_C", new String[][] { {"private", "protected"}, {} });
+        
+        //$Class Statement
+        sSet.put("GLOBAL_CLASS", new String[][] { {"Class", "Abstract", "const"}, {} });
+        sSet.put("CLASS_GLOBAL", new String[][] { {"Class", "id", "dt", "str"}, {} });
+        sSet.put("CLASS_DEC", new String[][] { {"Class"}, {} });
+        sSet.put("NO_PRIVATE", new String[][] { {"protected"}, {"id"} });
+        sSet.put("CLASS_PAR", new String[][] { {"<"}, {"("} });
+        sSet.put("INHERIT", new String[][] { {"id", ")"}, {} });
+        sSet.put("MULTI_INHERIT", new String[][] { {",", ")"}, {} });
+        
+        //?Class Body
+        sSet.put("CLASS_BODY", new String[][] { {"def", "Static", "const", "id", "dt", "str", "}"}, {} });
+        sSet.put("ATTR_FUNC", new String[][] { {"def", "Static", "const", "id", "dt", "str"}, {} });
+        
+        //$Dot Separated Id, FC, AR subscripts
+        sSet.put("POS", new String[][] { {"dot", "[", "("}, {"power", "mdm", "pm", "rop", "and", "or", "]", ")", ",", "}", ":", ";"} });
+        sSet.put("SUBSCRIPT", new String[][] { {"["}, {} });
+        sSet.put("SUBSCRIPT_LIST", new String[][] { {"["}, {"dot", "[", "(", "inc_dec", "power", "mdm", "pm", "rop", "and", "or", "=", "Cma", "]", ")", ",", "}", ":", ";"} });
+        sSet.put("FN_BRACKETS", new String[][] { {"("}, {} });
+        sSet.put("ARG", new String[][] { {"pm", "Parent", "Self", "id", "(", "typeCast", "not", "intConst", "floatConst", "charConst", "boolConst", "strConst", "new", "NaN", ")"}, {} });     
+        sSet.put("ARG_LIST", new String[][] { {",", ")"}, {} });
+        sSet.put("EXPR_OBJ", new String[][] { {"pm", "Parent", "Self", "id", "(", "typeCast", "not", "intConst", "floatConst", "charConst", "boolConst", "strConst", "new", "NaN"}, {} });
+        sSet.put("DOT_ID_SUBSCRIPT", new String[][] { {"dot", "["}, {} });
+        
+        
+        sSet.put("POS2", new String[][] { {"inc_dec", "dot", "[", "("}, {"power", "mdm", "pm", "rop", "and", "or", "]", ")", ",", "}", ":", ";"} });
+        sSet.put("INC_DEC_DOT", new String[][] { {"inc_dec", "dot", "["}, {"power", "mdm", "pm", "rop", "and", "or", "]", ")", ",", "}", ":", ";"} });
+        sSet.put("DOT_ID_SUBSCRIPT2", new String[][] { {"dot", "["}, {"power", "mdm", "pm", "rop", "and", "or", "]", ")", ",", "}", ":", ";"} });
+        
+        
+        //$Declaration and Initialization
+        sSet.put("DEC", new String[][] { {"const", "dt", "str", "id", "Parent", "Self"}, {} });
+        sSet.put("ID_FN", new String[][] { {"[", "id", "dot", "(", "inc_dec", "=", "cma"}, {} });
+        sSet.put("ASSIGN_OBJ", new String[][] { {"id", "dot", "(", "inc_dec", "=", "cma"}, {} });
+        sSet.put("ARR_SUBSCRIPT", new String[][] { {"]", "pm", "Parent", "Self", "id", "inc_dec", "(", "typeCast", "not", "intConst", "floatConst", "charConst", "boolConst", "strConst"}, {} });
+        sSet.put("VAR_ARR", new String[][] { {"[", "id"}, {} });
+        sSet.put("IS_INIT", new String[][] { {",", ";", "="}, {} });
+        sSet.put("INIT", new String[][] { {"Parent", "Self", "id", "new", "NaN", "inc_dec", "(", "typeCast", "not", "intConst", "floatConst", "charConst", "boolConst", "strConst", "pm"}, {} });
+        sSet.put("IS_ACMETH", new String[][] { {"Parent", "Self"}, {"id"} });
+        
+        sSet.put("OPER_TO_EXPR", new String[][] { {"inc_dec", "(", "typeCast", "not", "intConst", "floatConst", "charConst", "boolConst", "strConst"}, {} });
+        
+        sSet.put("ASSIGN_EXPR", new String[][] { {"dot", "[", "power", "mdm", "pm", "rop", "and", "or", "(", "=", "cma", "inc_dec"}, {",", ";"} });
+        sSet.put("DOT_EXPR", new String[][] { {"dot", "[", "power", "mdm", "pm", "rop", "and", "or"}, {",", ";"} });
+        sSet.put("ID_TO_EXPR", new String[][] { {"power", "mdm", "pm", "rop", "and", "or"}, {",", ";"} });
+        sSet.put("LIST", new String[][] { {",", ";"}, {} });
+        sSet.put("ASSIGN_OP", new String[][] { {"=", "cma"}, {} });
+
+        //$Assignment
+        sSet.put("ASSIGN", new String[][] { {"dot", "(", "inc_dec", "=", "cma"}, {} });
+        sSet.put("ASSIGN2", new String[][] { {"dot", "[", "(", "inc_dec", "=", "cma"}, {} });
+        sSet.put("FN_TWO_ASSIGN", new String[][] { {"(", "inc_dec", "=", "cma"}, {} });
+        sSet.put("DOT_ID3", new String[][] { {"dot", "["}, {} });
+        sSet.put("DOT_ID4", new String[][] { {"dot", "[", ";"}, {} });
+        sSet.put("TWO_ASSIGN", new String[][] { {"inc_dec", "=", "cma"}, {} });
+        
+        //$Object Declaration
+        sSet.put("NEW_OBJ", new String[][] { {"new", "NaN"}, {} });
+        sSet.put("CONSTR_ARR", new String[][] { {"id", "dt", "str"}, {} });
+        sSet.put("FN_ARR", new String[][] { {"(", "["}, {} });
+        
+        //$Array Declaration
+        sSet.put("DIM_PASS", new String[][] { {"pm", "Parent", "Self", "id", "(", "typeCast", "not", "intConst", "floatConst", 
+            "charConst", "boolConst", "strConst", "]"}, {} });
+        
+        sSet.put("MUL_ARR_DEC", new String[][] { {"["}, {",", ")", ";"} });
+        sSet.put("LEN_OF_ARR", new String[][] { {"pm", "Parent", "Self", "id", "(", "typeCast", "not", "intConst", "floatConst", 
+            "charConst", "boolConst", "strConst", "]"}, {} });
+        sSet.put("EMP_ARR_DEC", new String[][] { {"[", "{"}, {} });
+        sSet.put("EMP_ARR_DEC2", new String[][] { {"["}, {",", ")", ";"} });
+        
+        sSet.put("ARR_CONST", new String[][] { {"{"}, {} });
+        sSet.put("ARR_ELEMT", new String[][] { {"pm", "Parent", "Self", "id", "inc_dec(", "typeCast", "not", "intConst", "floatConst", 
+            "charConst", "boolConst", "strConst", "{", "}"}, {} });       
+        sSet.put("EXPR_LIST", new String[][] { {",", "}"}, {} });
+        
+        //$Global Variable Declaration
+        sSet.put("GLOBAL_DEC", new String[][] { {"dt", "id", "str"}, {} });
+        sSet.put("VAR_ARR_G", new String[][] { {"[", "id"}, {} });
+        sSet.put("VAR_G", new String[][] { {"id"}, {} });
+        sSet.put("IS_INIT_G", new String[][] { {"=", ",", ";"}, {} });
+        sSet.put("LIST_G", new String[][] { {",", ";"}, {} });
+
+        //$Attribute Declaration in class
+        sSet.put("ATTR_CLASS_DEC", new String[][] { {"Static", "const", "id", "dt", "str"}, {} });
+        sSet.put("IS_FINAL", new String[][] { {"const", "id", "dt", "str"}, {} });
+        sSet.put("TYPE_VAR_ARR", new String[][] { {"id", "dt", "str"}, {} });
+        sSet.put("VAR_ARR_C", new String[][] { {"[", "protected", "private", "id"}, {} });
+        sSet.put("VAR_C", new String[][] { {"protected", "private", "id"}, {} });
+        sSet.put("IS_INIT_C", new String[][] { {"=", ",", ";"}, {} });
+        sSet.put("LIST_C", new String[][] { {",", ";"}, {} });
+        
+        //$Expression
+        sSet.put("EXPR", new String[][] { {"pm", "Parent", "Self", "inc_dec", "id", "(", "typeCast", "not", "intConst", "floatConst", 
+            "charConst", "boolConst", "strConst"}, {} });
+        sSet.put("EXPR1", new String[][] { {"or"}, {"]", ")", ",", "}", ":", ";"} });
+        sSet.put("F", new String[][] { {"pm", "Parent", "Self", "inc_dec", "id", "(", "typeCast", "not", "intConst", "floatConst", 
+            "charConst", "boolConst", "strConst"}, {} });
+        sSet.put("F1", new String[][] { {"and"}, {"or", "]", ")", ",", "}", ":", ";"} });
+        sSet.put("G", new String[][] { {"pm", "Parent", "Self", "inc_dec", "id", "(", "typeCast", "not", "intConst", "floatConst", 
+            "charConst", "boolConst", "strConst"}, {} });
+        sSet.put("G1", new String[][] { {"rop"}, {"and", "or", "]", ")", ",", "}", ":", ";"} });
+        sSet.put("H", new String[][] { {"pm", "Parent", "Self", "inc_dec", "id", "(", "typeCast", "not", "intConst", "floatConst", 
+            "charConst", "boolConst", "strConst"}, {} });
+        sSet.put("H1", new String[][] { {"pm"}, {"rop", "and", "or", "]", ")", ",", "}", ":", ";"} });
+        sSet.put("I", new String[][] { {"pm", "Parent", "Self", "inc_dec", "id", "(", "typeCast", "not", "intConst", "floatConst", 
+            "charConst", "boolConst", "strConst"}, {} });
+        sSet.put("I1", new String[][] { {"mdm"}, {"pm", "rop", "and", "or", "]", ")", ",", "}", ":", ";"} });
+        sSet.put("J", new String[][] { {"pm", "Parent", "Self", "inc_dec", "id", "(", "typeCast", "not", "intConst", "floatConst", 
+            "charConst", "boolConst", "strConst"}, {} });
+        sSet.put("J1", new String[][] { {"power"}, {"mdm", "pm", "rop", "and", "or", "]", ")", ",", "}", ":", ";"} });
+        sSet.put("K", new String[][] { {"pm", "Parent", "Self", "inc_dec", "id", "(", "typeCast", "not", "intConst", "floatConst", 
+            "charConst", "boolConst", "strConst"}, {} });
+        sSet.put("IS_FLAG", new String[][] { {"pm", "Parent", "Self", "inc_dec", "id", "(", "typeCast", "not", "intConst", "floatConst", 
+            "charConst", "boolConst", "strConst"}, {} });
+
+        //$Operands
+        sSet.put("OPERANDS", new String[][] { {"Parent", "Self", "inc_dec", "id", "(", "typeCast", "not", "intConst", "floatConst", "charConst", 
+            "boolConst", "strConst", "pm"}, {} });
+        sSet.put("UNARY", new String[][] { {"typeCast", "not"}, {} });
+        sSet.put("FLAG", new String[][] { {"pm"}, {} });
+        
+        //$Increment Decrement
+        sSet.put("INC_DEC", new String[][] { {"inc_dec"}, {} });
+        
+        //$Constant
+        sSet.put("CONST", new String[][] { {"intConst", "floatConst", "charConst", "boolConst", "strConst"}, {} });
+        
+        //$Conditional Statements
+        sSet.put("IF_ELSE", new String[][] { {"if"}, {} });
+        sSet.put("OELSE", new String[][] { {"else"}, {";", "if", "shift", "const", "dt", "str", "id", "Parent", "Self", "test", 
+            "loop", "do", "stop", "ret", "cont", "raise", "state", "default", "}", "else", "till"} });
+        
+        sSet.put("SWITCH", new String[][] { {"shift"}, {} });
+        sSet.put("STATE", new String[][] { {"state", "default", "}"}, {} });
+        sSet.put("DEFAULT", new String[][] { {"default"}, {} });
+        sSet.put("SWITCH_BODY", new String[][] { {"{", "; if", "shift", "const", "dt", "id", "Parent", "Self", "test", "loop", 
+            "do", "stop", "ret", "cont", "raise", "state", "default", "}"}, {} }); 
+
+        //$Loop Statements
+        sSet.put("LOOP", new String[][] { {"loop"}, {} });
+        sSet.put("LT", new String[][] { {"till", "thru"}, {} });
+        
+        sSet.put("WHILE_ST", new String[][] { {"till"}, {} });
+        sSet.put("DO_WHILE", new String[][] { {"do"}, {} });
+
+        sSet.put("FOR_ST", new String[][] { {"thru"}, {} });
+        sSet.put("FOR_ARG", new String[][] { {"id", "("}, {} });
+        sSet.put("POS3", new String[][] { {"dot", "[", "("}, {")"} });
+        sSet.put("DOT_ID5", new String[][] { {"dot", "[", "("}, {")"} });
+        
+        //$Jump Statements
+        sSet.put("BREAK", new String[][] { {"stop"}, {} });
+        sSet.put("CONTINUE", new String[][] { {"cont"}, {} });
+        sSet.put("L", new String[][] { {"id", ";"}, {} });
+        
+        sSet.put("RET_ST", new String[][] { {"ret"}, {} });
+        
+        sSet.put("THROW", new String[][] { {"raise"}, {} });
+        
+        //$Exception Handler
+        sSet.put("TRY_CATCH", new String[][] { {"test"}, {} });
+        sSet.put("EXCEPT_FINALLY", new String[][] { {"except", "Finally"}, {";", "if", "shift", "const", "dt", "str", "id", "Parent", 
+            "Self", "test", "loop", "do", "stop", "ret", "cont", "raise", "state", "default", "}", "else", "till"} });
+        sSet.put("ERROR_TYPE", new String[][] { {"("}, {} });
+        sSet.put("ERR_DOT", new String[][] { {"dot", "id"}, {} });
+        sSet.put("THROWS", new String[][] { {"raises"}, {"{", ";"} });
+        sSet.put("ID_ERR", new String[][] { {"dot", ","}, {"{", ";"} });
+        sSet.put("ERR_DOT_ID", new String[][] { {"dot"}, {"{", ";"} });
+        sSet.put("ERR_LIST", new String[][] { {","}, {} }); 
+        sSet.put("FINALLY", new String[][] { {"finally"}, {} });
+
+    }
+
+        
+
+
+// CFG
+
+// start structure ...
+
+// EXPRESSION
+private boolean EXPR(){
+    if(F()){
+        if (EXPR1()){
+        return True;
+        }
+    }
+    return False;
+}
+
+private boolean EXPR1(){
+    if("OR" F()){
+        if(EXPR1()){
+            return True;
+        }
+    }
+    else{
+        return false;
+    }
+}
+
+private boolean F(){
+    if(G()){
+        if(F1()){
+            return True;
+        }
+    }
+    return false;
+}
+
+private boolean F1(){
+    if("AND" G()){
+        if(F1()){
+            return True;
+        }
+    }
+    else{
+        return false;
+    }
+}
+
+private boolean G(){
+    if(H()){
+        if(G1()){
+            return True;
+        }
+    }
+        return false;
+}
+
+private boolean G1(){
+    if("ROP" H()){
+        if(G1()){
+            return True;
+        }
+    }
+    else{
+        return false;
+    }
+}
+
+private boolean H(){
+    if(I()){
+        if(H1()){
+            return True;
+        }
+    }
+        return false;
+}
+
+private boolean H1(){
+    if("pm" I()){
+        if(H1()){
+            return True;
+        }
+    }
+    else{
+        return false;
+    }
+}
+
+private boolean I(){
+    if(J()){
+        if(I1()){
+            return True;
+        }
+    }
+        return false;
+}
+
+private boolean I1(){
+    if("mdm" J()){
+        if(I1()){
+            return True;
+        }
+    }
+    else{
+        return false;
+    }
+}
+
+private boolean J(){
+    if(K()){
+        if(J1()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean J1(){
+    if("NOT" K()){
+        if(J1()){
+            return True;
+        }
+    }
+    else{
+        return false;
+    }
+}
+
+private boolean K(){
+    if(ID K1()){
+        return True;  
+    }
+    elseif(CONST()){
+        return True;
+    }
+    elseif(EXPR()){
+        return True;
+    }
+    elseif(INC_DEC()ID){
+        return True;
+    }
+        return false;
+}
+
+private boolean K1(){
+    if(FN_CALL()){
+        return True;
+    }
+    if(INC_DEC()){
+        return True;
+    }
+    else{
+        return false;
+    }
+}
+
+
+// ARRAY 3 DIMENSIONAL
+
+private boolean 3D_SST(){
+    if(DT()){
+        if(SST_2()){
+            return True;
+        }
+    }
+    elseif(SST_2()){
+        return True;
+    }
+    return False;
+}
+
+private boolean SST_2(){
+    if("ID" 3DARRAY()){
+        return True;
+    }
+        return false;
+}
+
+private boolean 3DARRAY(){
+    if("[" ARR_PAR() "]"){
+        if(arr_max1()){
+            if(arr_exp()){
+            return True;
+            }
+        }
+    }
+        return false;
+}
+
+private boolean arr_max1(){
+    if("[" ARR_PAR() "]"){
+        if(arr_max2()){
+            return True;
+        }
+    }
+    else{
+        return false;
+    }
+}
+
+private boolean arr_max2(){
+    if("[" ARR_PAR()"]"){
+            return True;
+    }
+    else{
+        return false;
+    }
+}
+
+private boolean ARR_PAR(){
+    if("int_const"){
+            return True;
+    }
+    else{
+        return false;
+    }
+}
+
+private boolean arr_exp(){
+    if(arr_exp1()){
+        return True;
+    }
+    elseif("{};"){
+        return True;
+    }
+    elseif(";"){
+        return True;
+    }
+    return False;
+}
+
+private boolean arr_exp1(){
+    if("{" arr_exp2()"};"){
+            return True;
+    }
+        return false;
+}
+
+private boolean arr_exp2(){
+    if("ID" PAR_LIST()){
+      return True;
+    }
+    elseif(arr_exp3()){
+        return True;
+    }
+        return false;
+}
+
+private boolean arr_exp3(){
+    if(2D_PAR()){
+            return True;
+    }
+    elseif(3D_PAR()){
+        return True;
+    }
+        return false;
+}
+
+private boolean 2D_PAR(){
+    if("{ID" PAR_LIST2() "}"){
+            return True;
+    }
+    elseif("{ }"){
+        return false;
+    }
+    elseif(2D_PAR()){
+        return True;
+    }
+}
+
+private boolean PAR_LIST2(){
+    if(",ID"){
+       return True;
+    }
+    else{
+        return false;
+    }
+}
+
+private boolean 2D_PAR1(){
+    if("," 2D_PAR()){
+            return True;
+    }
+    else{
+        return false;
+    }
+}
+
+private boolean 3D_PAR(){
+    if("{ID" PAR_LIST3() "}" 3D_PAR()){
+            return True;
+    }
+    elseif("{ }" 3D_PAR()){
+        return false;
+    }
+}
+
+private boolean PAR_LIST3(){
+    if(",ID" PAR_LIST3_1()){
+            return True;
+    }
+    else{
+        return false;
+    }
+}
+
+private boolean PAR_LIST3_1(){
+    if(",ID" PAR_LIST3()){
+            return True;
+    }
+    else{
+        return false;
+    }
+}
+
+private boolean 3D_PAR1(){
+    if(3D_PAR()){
+            return True;
+    }
+    else{
+        return false;
+    }
+}
+
+// FUNCTION DECLERATION
+
+private boolean FN_DEC(){
+    if("def" RET_TYPE()){
+        if(FN_ST()){
+            if("{" MST() "}"){
+                return True;
+            }
+        }
+    }
+    return False;
+}
+
+private boolean RET_TYPE(){
+    if(DT() "ID"){
+        if(RT_OBJ()){
+                return True;
+        }
+    }
+    return False;
+}
+
+private boolean RT_OBJ(){
+    if(ARR_TYPE()){
+        return True;
+    }
+    else{
+    return False;
+    }
+}
+
+private boolean ARR_TYPE(){
+    if("[ ]" ARR_Upto3D()){
+        return True;
+        }
+    return False;
+}
+
+private boolean ARR_Upto3D(){
+    if("[]"ARR_Upto3D_1()){
+        return True;
+    }
+    else{
+    return False;
+    }
+}
+
+private boolean ARR_Upto3D_1(){
+    if("[ ]"){
+        return True;
+    }
+    else{
+    return False;
+    }
+}
+
+private boolean FN_ST(){
+    if("( " PAR() ")"){
+        return True;
+    }
+    return False;
+}
+
+private boolean PAR(){
+    if(DTA() "ID"){
+        if(PAR_LIST()){
+            return True;
+        }
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean PAR_LIST(){
+    if("," DTA() "ID"){
+        if(PAR_LIST()){
+            return True;
+        }
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean DTA(){
+    if(TYPE()){
+        if(ARR_TYPE()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean TYPE(){
+    if(DT()){
+       return True;
+    }
+    elseif("ID"){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+// ASSIGNMENT 
+
+private boolean ASSIG_SST(){
+    if(DT()){
+        if(SST_2()){
+            return True;
+        }
+    }
+    elseif(SST_2){
+        return True;
+    }
+    return False;
+}
+
+private boolean SST_2(){
+    if("ID" ASSIG_SST()){
+        return True;
+    }
+    return False;
+}
+
+private boolean ASSIGN_SST(){
+    if(POS() ";"){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean POS(){
+    if(DOT_ID_SUBSCRIPT()){
+        return True;
+    }
+    elseif(FN_BRACKET()){
+        if(DOT_ID_SUBSCRIPT){
+            return True;
+        }
+    }
+    elseif(POS2()){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean ARR_SUBSCRIPT(){
+    if("(" EXPR() ")"){
+        if(SUBSCRIPT_LIST()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean SUBSCRIPT_LIST(){
+    if(ARR_SUBSCRIPT()){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean FN_CALL(){
+    if(FN_BRACKETS() ";"){
+        return True;
+    }
+    return False;
+}
+
+private boolean FN_BRACKETS(){
+    if("(" ARG() ")"){
+        return True;
+    }
+    return False;
+}
+
+private boolean ARG(){
+    if(EXPR_OBJ()){
+        if(ARG_LIST()){
+            return True;
+        }
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean ARG_LIST(){
+    if("," EXPR_OBJ()){
+        if(ARG_LIST()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean EXPR_OBJ(){
+    if(EXPR()){
+        return True;
+    }
+    elseif(NEW_OBJ()){
+        return True;
+    }
+    return False;
+}
+
+private boolean DOT_ID_SUBSCRIPT(){
+    if(".ID " POS()){
+        return True;
+    }
+    elseif(ARR_SUBSCRIPT()){
+        if(POS()){
+            return True;
+        }
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean POS2(){
+    if(INC_DECDOT()){
+        return True;
+    }
+    elseif(FN_BRACKETS()){
+        if(DOT_ID_SUBSCRIPT()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean INC_DECDOT(){
+    if(INC_DEC()){
+        if(INC_DECDOT1()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean INC_DECDOT1(){
+    if(DOT_ID_SUBSCRIPT2()){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean DOT_ID_SUBSCRIPT2(){
+    if(".ID" POS2()){
+        return True;
+    }
+    elseif(ARR_SUBSCRIPT()){
+        if(POS2()){
+            return True;
+        }
+    }
+    else{
+        return False;
+    }
+}
+
+// DECLERATION
+
+private boolean DEC_SST(){
+    if(DT()){
+        if(SST_2()){
+            return True;
+        }
+    }
+    elseif(SST_2()){
+        return True;
+    }
+    return False;
+}
+
+private boolean SST_2(){
+    if("ID" DEC()){
+        return True;
+    }
+    return False;
+}
+
+private boolean DEC(){
+    if(INIT()){
+        if(LIST()){
+            return True;
+        }
+    }
+    elseif(DOTTED()){
+        return True;
+    }
+    elseif(VAR_ARR()){
+        return True;
+    }
+    return False;
+}
+
+private boolean LIST(){
+    if(";"){
+        return True;
+    }
+    elseif(",ID" INIT()){
+        if(LIST()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean INIT(){
+    if("=" INIT4()){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean INIT4(){
+    if("ID" INIT()){
+        return True;
+    }
+    elseif(CONST()){
+        return True;
+    }
+    return False;
+}
+
+private boolean DOTTED(){
+    if(ASSIGN()){
+        if(LIST2()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean ASSIGN(){
+    if(".ID" ASSIGN2()){
+        return True;
+    }
+    elseif(FN_TWO_ASSIGN()){
+        return True;
+    }
+    return False;
+}
+
+private boolean ASSIGN2(){
+    if(".ID" ASSIGN2()){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean FN_TWO_ASSIGN(){
+    if(".fn" FN_BRACKETS()){
+        if(ASSIGN2){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean FN_BRACKETS(){
+    if(ARG()){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean ARG(){
+    if(EXPR_OBJ()){
+        if(ARG_LIST()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean ARG_LIST(){
+    if("," EXPR_OBJ()){
+        if(ARG_LIST()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean EXPR_OBJ(){
+    if(EXPR()){
+        return True;
+    }
+    elseif(NEW_OBJ()){
+        return True;
+    }
+    return False;
+}
+
+private boolean LIST2(){
+    if(";"){
+        return True;
+    }
+    elseif(",ID" INIT2()){
+        if(LIST2()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean INIT2(){
+    if("=" INIT3()){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean INIT3(){
+    if("ID" INIT2()){
+        return True;
+    }
+    elseif(CONST()){
+        return True;
+    }
+    return False;
+}
+
+private boolean VAR_ARR(){
+    if(ARR_TYPE()){
+        if(IS_INIT()){
+            return True;
+        }
+    }
+    elseif(IS_INIT()){
+        return True;
+    }
+    return False;
+}
+
+private boolean IS_INIT(){
+    if("=" INIT()){
+        if(LIST()){
+            return True;
+        }
+    }
+    elseif(LIST()){
+        return True;
+    }
+    return False;
+}
+
+private boolean LIST(){
+    if(",ID" IS_INIT()){
+        return True;
+    }
+    elseif(";"){
+        return True;
+    }
+    return False;
+}
+
+private boolean INIT(){
+    if(IS_ACMETH() "ID"){
+        if(EXPR()){
+            return True;
+        }
+    }
+    elseif(NEW_OBJ()){
+        return True;
+    }
+    return False;
+}
+
+private boolean IS_ACMETH(){
+    if(ACCESS_METH()){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean ACCESS_METH(){
+    if("parent"){
+        return True;
+    }
+    elseif("self"){
+        return True;
+    }
+    return False;
+}
+
+// BEGIN (MAIN)
+
+private boolean MAIN(){
+    if(DEF() "begin {"){
+        if(MST() "}"){
+            if(DEF()){
+                return True;
+            }
+        }
+    }
+    return False;
+}
+
+private boolean DEF(){
+    if(CLASS_DEC()){
+        return True;
+    }
+    elseif(FN_DEC){
+        return True;
+    }
+    elseif(DEC_SST){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+// BREAK | CONTINUE
+
+private boolean BREAK(){
+    if("stop" L()){
+        return True;
+    }
+    return False;
+}
+
+private boolean CONTINUE(){
+    if("cont" L()){
+        return True;
+    }
+    return False;
+}
+
+private boolean L(){
+    if("ID:"){
+        return True;
+    }
+    elseif(";"){
+        return True;
+    }
+    return False;
+}
+
+// FOR LOOP 
+
+private boolean FOR_LOOP(){
+    if("EXCLUDED(" F1()){
+        if(F2()){
+            if(";" F3() ")"){
+                if(BODY()){
+                    return True;
+                }
+            }
+        }
+    }
+    return False;
+}
+
+private boolean F1(){
+    if(DEC_SST()){
+        return True;
+    }
+    elseif(ASSIGN_SST()){
+        return True;
+    }
+    elseif(";"){
+        return True;
+    }
+    return False;
+}
+
+private boolean F2(){
+    if(EXPR()){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean F3(){
+    if(INC_DEC()){
+        return True;
+    }
+    elseif(ASSIGN_SST()){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+// WHILE LOOP
+
+private boolean WHILE_LOOP(){
+    if("LOOP_TILL(" EXPR() ")"){
+        if(BODY()){
+            return True;
+        }
+    }
+    return False;
+}
+
+// IF ELSE
+
+private boolean IF_ELSE(){
+    if("if(" EXPR() ")"){
+        if(BODY()){
+            if(OELSE()){
+                return True;
+            }
+        }
+    }
+        return False;
+}
+
+private boolean OELSE(){
+    if("else" BODY()){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+// SWITCH CASE 
+
+private boolean SWITCH(){
+    if("shift(" EXPR() ")"){
+        if("{" STATE() "}"){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean STATE(){
+    if("state" CONST()){
+        if(":" SWITCH_BODY()){
+            return True;
+        }
+    }
+    elseif(BASIC()){
+        return True;
+    }
+    return False;
+}
+
+private boolean BASIC(){
+    if("default:" DEFAULT_BODY()){
+        return True;
+    }
+    return False;
+}
+
+private boolean SWITCH_BODY(){
+    if("{" MST() "}"){
+        if(STATE()){
+            return True;
+        }
+    }
+    elseif(MST()){
+        if(STATE()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean DEFAULT_BODY(){
+    if(MST()){
+        return True;
+    }
+    elseif("{" MST() "}"){
+        return True;
+    }
+    return False;
+}
+
+// OBJECT DECLERATION
+
+private boolean NEW_OBJ(){
+    if(CNAME() "ID"){
+        if(ATTR()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean CNAME(){
+    if(CONST()){
+        return True;
+    }
+    elseif(CLASS_NAME()){
+        return True;
+    }
+    return False;
+}
+
+private boolean ATTR(){
+    if("=" FN_DEC()){
+        return True;
+    }
+    elseif("=new" CONSTR_ARR()){
+        return True;
+    }
+    elseif(";"){
+        return True;
+    }
+    return False;
+}
+
+private boolean CONSTR_ARR(){
+    if("ID" FN_BRACKETS() ";"){
+        return True;
+    }
+    elseif(DT()){
+        if(FN_BRACKETS){
+            return True;
+        }
+    }
+    elseif(FN_BRACKETS() ";"){
+        return True;
+    }
+    return False;
+}
+
+// CLASS DECLERATION
+
+private boolean GLOBAL_CLASS(){
+    if(CLASS_DEC()){
+        return True;
+    }
+    elseif("Abstract" CLASS_DEC()){
+        return True;
+    }
+    return False;
+}
+
+private boolean CLASS_DEC(){
+    if("class ID" CLASS_PAR()){
+        if(INHERIT()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean CLASS_PAR(){
+    if("(ID)"){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean INHERIT(){
+    if("extends ID" CLASS_PAR()){
+        if("{" CLASS_BODY() "}"){
+            return True;
+        }
+    }
+    elseif(CLASS_BODY()){
+        return True;
+    }
+    return False;
+}
+
+private boolean CLASS_BODY(){
+    if(ATTR_FUNC()){
+        if(CLASS_BODY()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean ATTR_FUNC(){
+    if(FN_CLASS_DEC()){
+        return True;
+    }
+    elseif(ATTR_CLASS_DEC()){
+        return True;
+    }
+    elseif(NEW_OBJ()){
+        return True;
+    }
+    return False;
+}
+
+// FUNCTION DECLERATION IN CLASS
+
+private boolean FN_CLASS_DEC(){
+    if("def" IS_ABSTRACT()){
+        return True;
+    }
+    return False;
+}
+
+private boolean IS_ABSTRACT(){
+    if("Abstract" RET_TO() ";"){
+        return True;
+    }
+    elseif("Static" WITH_FINAL()){
+        if("{" MST() "}"){
+            return True;
+        }
+    }
+    elseif( WITH_FINAL()){
+        if("{" MST() "}"){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean WITH_FINAL(){
+    if("super" RET_TO()){
+        return True;
+    }
+    elseif(RET_TO()){
+        return True;
+    }
+    return False;
+}
+
+private boolean RET_TO(){
+    if("RET_TYPE_C()){
+        if(FN_ST()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean RET_TYPE_C(){
+    if("ID" RET_OBJ_C()){
+        return True;
+    }
+    elseif(ACCESSMOD_C()){
+        return True;
+    }
+    elseif("ID"){
+        return True;
+    }
+    return False;
+}
+
+private boolean RET_OBJ_C(){
+    if(ARR_TYPE()){
+        if(ACCESSMOD() "ID"){
+            return True;
+        }
+    }
+    elseif(ACCESSMOD_C() "ID"){
+        return True;
+    }
+    elseif("ID"){
+        return True;
+    }
+    else{
+        return False;
+    }
+}
+
+private boolean ACCESSMOD_C(){
+    if("private"){
+        return True;
+    }
+    elseif("protected"){
+        return True;
+    }
+    return False;
+}
+
+// ATTRIBUTE DECLERATION IN CLASS 
+
+private boolean ATTR_CLASS_DEC(){
+    if("Static" IS_FINAL()){
+        return True;
+    }
+    elseif(IS_FINAL()){
+        return True;
+    }
+    return False;
+}
+
+private boolean IS_FINAL(){
+    if("const" TYPE_VAR_ARR()){
+        return True;
+    }
+    elseif(TYPE_VAR_ARR()){
+        return True;
+    }
+    return False;
+}
+
+private boolean TYPE_VAR_ARR(){
+    if(TYPE()){
+        if(VAR_ARR_C()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean VAR_ARR_C(){
+    if(ARR_TYPE()){
+        if(VAR_C()){
+            return True;
+        }
+    }
+    elseif(VAR_C()){
+        return True;
+    }
+    return False;
+}
+
+private boolean VAR_C(){
+    if(ACCESSMOD() "ID"){
+        if(IS_INIT_C()){
+            return True;
+        }
+    }
+    return False;
+}
+
+private boolean IS_INIT_C(){
+    if("=" INIT()){
+        if(LIST_C()){
+            return True;
+        }
+    }
+    elseif(LIST()){
+        return True;
+    }
+    return False;
+}
+
+private boolean LIST_C(){
+    if("," ACCESSMOD()){
+        if("ID" IS_INIT_C()){
+            return True;
+        }
+    }
+    elseif(";"){
+        return True;
+    }
+    return False;
+}
