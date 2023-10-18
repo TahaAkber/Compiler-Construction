@@ -1,3 +1,12 @@
-[{"line":1,"classP":"dt","valueP":"integer"},
-{"line":1,"classP":"id","valueP":"a"},
-{"line":1,"classP":";","valueP":";"}]
+[{"line":1,"classP":"package","valueP":"package"},
+{"line":1,"classP":"id","valueP":"taha"},
+{"line":1,"classP":"dot","valueP":"."},
+{"line":1,"classP":"id","valueP":"asdasd"},
+{"line":1,"classP":"dot","valueP":"."},
+{"line":1,"classP":"id","valueP":"asdasdas"},
+{"line":1,"classP":";","valueP":";"},
+{"line":3,"classP":"begin","valueP":"begin"},
+{"line":3,"classP":"{","valueP":"{"},
+{"line":3,"classP":"}","valueP":"}"},
+{"line":3,"classP":";","valueP":";"},
+{"line":3,"classP":"~","valueP":"~"}]

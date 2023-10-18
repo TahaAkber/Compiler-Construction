@@ -1,1 +1,3 @@
-integer a;
+package taha.asdasd.asdasdas;
+
+begin{;}

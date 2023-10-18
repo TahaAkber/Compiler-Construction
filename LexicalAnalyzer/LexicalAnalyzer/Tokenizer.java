@@ -109,6 +109,7 @@ public class Tokenizer {
 
 
         // Save Token List In txt
+        TokenClass.addToken(new TokenClass("~","~",Tokenizer.line));
         TokenClass.saveToken();
 
     }
@@ -445,4 +446,7 @@ public class Tokenizer {
         Matcher m = p.matcher(test);
         return m.matches();
     }
+
+
+
 }

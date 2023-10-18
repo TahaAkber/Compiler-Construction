@@ -66,11 +66,11 @@ public class TokenClass {
                 jsonString += gson.toJson(TokenClass.tokenlist.get(i));
 
             }
+
             Writer.write(jsonString+"]");
+
             Writer.close();
             System.out.println("Successfully save Token to the file.");
-            //jsonString += "]";
-
 
         } catch (IOException e) {
             System.out.println("An error occurred.");
@@ -100,6 +100,7 @@ public class TokenClass {
         }
         return returnString;
     }
+
 
 };
 
