@@ -1,11 +1,17 @@
-
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package LexicalAnalyzer;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-
+/**
+ *  variable naming scheme: camel case.
+ * @author  Umar, Izhan, Muqsit
+ */
 public class Validwords {
 
     final static String ID = "id";
@@ -17,7 +23,10 @@ public class Validwords {
     final static String DOT = "dot";
 
 
-
+    final static String DT = "dt";
+    final static String MDM = "mdm";
+    final static String RELATIONALOPERATOR = "rop";
+    final static String COMPOUNDASSIGNMENT = "cma";
 
     //{{value, classpart}}
     static String[][] keyword = {
@@ -29,12 +38,15 @@ public class Validwords {
 
             {"def", "def"},
 
-            {"void", "implicit"},
+            {"convt", "typeCast"},
+
             {"if", "if"},
             {"else", "else"},
             {"loop", "loop"},
+
             {"till", "till"},
-            {"excluded","excluded"},//for
+            {"thru", "thru"},
+            {"do", "do"},
 
             {"in", "in"},
             {"shift", "shift"}, // shift
@@ -44,27 +56,33 @@ public class Validwords {
             {"stop", "stop"},   // break
             {"ret", "ret"},     // return
 
-            {"integer",  "dt"},
-            {"fraction",  "dt"}, // float
-            {"char",  "dt"}, //chat
-            {"str", "str"},//string
-            {"binary",  "dt"}, //bool
-            {"val",  "dt"}, //value
+            {"int", DT},
+            {"point", DT}, // float
+            {"char", DT},
+            {"str", "str"},
+            {"bool", DT},
+            {"val", DT},
 
             {"true",BOOLEANCONST},
             {"false",BOOLEANCONST},
             {"NaN","NaN"},
 
             {"Class", "Class"},
-            {"junction","junction"},
             {"Abstract", "Abstract"},
             {"Static", "Static"},
-            {"@@", "private"},
-            {"@", "protected"},
+            {"$", "private"},
+            {"$$", "protected"},
             {"const", "const"},
             {"Self", "Self"},
+            {"Parent", "Parent"},
             {"new", "new"},
-            {"extends","class"}
+
+
+            {"test", "test"},   // catch
+            {"except", "except"},
+            {"finally", "finally"},
+            {"raise", "raise"},
+            {"raises", "raises"}
 
 
 
@@ -72,19 +90,19 @@ public class Validwords {
 
     static String[][] operator = {
 
-            {"<=", "rop"},
-            {">=", "rop"},
-            {"!=", "rop"},
-            {"==", "rop"},
-            {"<",  "rop"},
-            {">",  "rop"},
+            {"<=", RELATIONALOPERATOR},
+            {">=", RELATIONALOPERATOR},
+            {"!=", RELATIONALOPERATOR},
+            {"==", RELATIONALOPERATOR},
+            {"<",  RELATIONALOPERATOR},
+            {">",  RELATIONALOPERATOR},
 
-            {"+=", "cma"},
-            {"*=", "cma"},
-            {"-=", "cma"},
-            {"%=", "cma"},
-            {"^=", "cma"},
-            {"/=", "cma"},
+            {"+=", COMPOUNDASSIGNMENT},
+            {"*=", COMPOUNDASSIGNMENT},
+            {"-=", COMPOUNDASSIGNMENT},
+            {"%=", COMPOUNDASSIGNMENT},
+            {"^=", COMPOUNDASSIGNMENT},
+            {"/=", COMPOUNDASSIGNMENT},
 
             {"!", "not"},
             {"&&", "and"},
@@ -96,13 +114,13 @@ public class Validwords {
             {"+", "pm"},
             {"-", "pm"},
 
-            {"*", "MDM"},
-            {"/", "MDM"},
-            {"%", "MDM"},
+            {"*", MDM},
+            {"/", MDM},
+            {"%", MDM},
 
             {"^", "power"},
 
-            {"=", "Assignment"}
+            {"=", "="}
 
     };
 

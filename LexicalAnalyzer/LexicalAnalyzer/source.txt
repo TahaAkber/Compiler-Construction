@@ -1,3 +1,6 @@
 package taha.asdasd.asdasdas;
 
-begin{;}
+begin{
+integer a=4;
+fraction b = 4.5;
+}
