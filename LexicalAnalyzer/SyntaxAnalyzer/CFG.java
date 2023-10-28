@@ -8,7 +8,11 @@ public class CFG {
         System.out.println("SCOPE STACK: ");
         boolean syntax = parser.validate(TokenClass.tokenlist);
         System.out.println("----------------------------------------------");
+        System.out.println("SEMANTIC: ");
+        parser.ST.printST();
+        System.out.println("----------------------------------------------");
         System.out.println("SYNTAX: "+syntax);
         System.out.println("----------------------------------------------");
+        parser.ST.printError();
     }
 }
